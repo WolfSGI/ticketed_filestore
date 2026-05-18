@@ -1,0 +1,7 @@
+recursive-include src *.py
+
+include *.rst *.md
+include *.txt
+include pyproject.toml
+
+global-exclude __pycache__ *.py[cod] *~
