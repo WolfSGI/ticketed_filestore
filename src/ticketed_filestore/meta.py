@@ -2,7 +2,7 @@ import enum
 import hashlib
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TypedDict, BinaryIO, Iterable, NamedTuple
+from typing import TypedDict, BinaryIO, Iterable, Iterator, NamedTuple
 
 
 ChecksumAlgorithm = enum.Enum(
@@ -33,7 +33,12 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def store(self, data: BinaryIO, ticket: str | None = None, **metadata) -> FileInfo:
+    def store(
+            self,
+            data: BinaryIO | Iterable[bytes],
+            ticket: str | None = None,
+            **metadata
+    ) -> FileInfo:
         """Stores the given data and metadata under a given ticket
         or generates a brand new one.
         """
