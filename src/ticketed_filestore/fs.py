@@ -3,7 +3,7 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import Iterator, Iterable, BinaryIO
 from pathlib import Path
-from .meta import FileInfo, Storage, ChecksumAlgorithm
+from .meta import FileInfo, FileMetadata, Storage, ChecksumAlgorithm
 
 
 UUID = re.compile(
@@ -45,26 +45,24 @@ class FilesystemStorage(Storage, ABC):
                     break
                 yield data
 
-    def get(self, ticket: str) -> Iterator[bytes]:
+    def stream(self, ticket: str) -> Iterator[bytes]:
         path = self.to_uri(ticket)
         if not path.exists():
             raise FileNotFoundError(path)
         return self.file_iterator(path)
 
-    def store(self, data: BinaryIO, **metadata) -> FileInfo:
-        ticket = self.new_ticket()
-        return self.put(ticket, data, **metadata)
-
     def __contains__(self, ticket: str) -> bool:
         path = self.to_uri(ticket)
         return path.exists()
 
-    def put(
+    def store(
             self,
-            ticket: str,
             data: BinaryIO | Iterable[bytes],
+            ticket: str = None,
             **metadata
     ) -> FileInfo:
+        if ticket is None:
+            ticket = self.new_ticket()
         path = self.to_uri(ticket)
         assert not path.exists()  # this happens on ticket conflicts.
         depth = len(path.relative_to(self.root).parents)
@@ -82,11 +80,15 @@ class FilesystemStorage(Storage, ABC):
                 fhash.update(block)
 
         return FileInfo(
-            namespace=self.namespace,
             ticket=ticket,
-            size=size,
-            checksum=(fhash.name, fhash.hexdigest()),
-            metadata=metadata
+            metadata=FileMetadata(
+                namespace=self.namespace,
+                size=size,
+                checksums={
+                    fhash.name: fhash.hexdigest()
+                },
+                **metadata,
+            )
         )
 
     def delete(self, ticket: str) -> Iterable[bytes]:

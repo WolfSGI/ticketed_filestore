@@ -2,7 +2,7 @@ import enum
 import hashlib
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TypedDict, BinaryIO, Iterable
+from typing import TypedDict, BinaryIO, Iterable, NamedTuple
 
 
 ChecksumAlgorithm = enum.Enum(
@@ -13,12 +13,15 @@ ChecksumAlgorithm = enum.Enum(
 )
 
 
-class FileInfo(TypedDict):
-    ticket: str
+class FileMetadata(TypedDict):
     size: int
-    checksum: tuple[str, str]  # (algorithm, value)
     namespace: str
-    metadata: dict | None = None
+    checksums: dict[str, str]
+
+
+class FileInfo(NamedTuple):
+    ticket: str
+    metadata: FileMetadata
 
 
 class Storage(ABC):
@@ -30,24 +33,15 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def store(self, data: BinaryIO, **metadata) -> FileInfo:
-        """Stores the given data and metadata under a brand new ticket.
+    def store(self, data: BinaryIO, ticket: str | None = None, **metadata) -> FileInfo:
+        """Stores the given data and metadata under a given ticket
+        or generates a brand new one.
         """
 
     @abstractmethod
-    def get(self, ticket: str) -> Iterable[bytes]:
-        """Returns a bytes iterable from a resolved ticket.
+    def stream(self, ticket: str) -> Iterator[bytes]:
+        """Returns a bytes iterator from a resolved ticket.
         It ticket cannot be resolved, an error is raised.
-        """
-
-    @abstractmethod
-    def put(
-            self,
-            ticket: str,
-            data: BinaryIO | Iterable[bytes],
-            **metadata
-    ) -> FileInfo:
-        """Stores the given data and metadata under the provided ticket.
         """
 
     @abstractmethod
