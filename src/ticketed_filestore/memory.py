@@ -36,7 +36,7 @@ class MemoryStorage(Storage, ABC):
     def stream(self, ticket: str) -> Iterator[bytes]:
         bio = self._store.get(ticket)
         if bio is None:
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File {ticket} is unknown.")
         return self.file_iterator(bio)
 
     def __contains__(self, ticket: str) -> bool:
