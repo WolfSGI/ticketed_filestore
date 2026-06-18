@@ -20,7 +20,7 @@ def test_memory_store(test_file):
     info = storage.store(test_file)
     assert isinstance(info, FileInfo)
     assert info.metadata == FileMetadata(
-        namespace='flat',
+        namespace='memory',
         size=28,
         checksums={'md5': '53195454e1210adae36ecb34453a1f5a'},
     )
@@ -32,7 +32,7 @@ def test_memory_store_metadata(test_file):
     storage_info = storage.store(
         test_file, filename="test.jpg", owner="admin")
     assert storage_info.metadata == FileMetadata(
-        namespace='flat',
+        namespace='memory',
         size=28,
         filename='test.jpg',
         owner='admin',
@@ -68,7 +68,7 @@ def test_memory_delete(test_file):
 
 
 def test_memory_checksum(test_file, tmp_path):
-    storage = MemoryStorage('memory')
+    storage = MemoryStorage('memory', algorithm='sha256')
     storage_info = storage.store(test_file)
     assert storage_info.metadata['checksums'] == {
         'sha256':

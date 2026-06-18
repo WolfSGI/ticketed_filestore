@@ -18,7 +18,7 @@ class MemoryStorage(Storage, ABC):
         except KeyError:
             raise LookupError(f'Unknown algorithm: `{algorithm}`.')
 
-    def to_uri(self, ticket: str) -> Path | None:
+    def to_uri(self, ticket: str) -> None:
         return None
 
     def new_ticket(self) -> str:
@@ -61,8 +61,8 @@ class MemoryStorage(Storage, ABC):
             size += target.write(block)
             fhash.update(block)
 
-        bio.seek(0)
-        self._store[ticket] = bio
+        target.seek(0)
+        self._store[ticket] = target
         return FileInfo(
             ticket=ticket,
             metadata=FileMetadata(
